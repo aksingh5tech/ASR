@@ -135,7 +135,7 @@ class ASRModelTrainer:
             f"model.test_ds.manifest_filepath={self.manifest_path}",
             "exp_manager.exp_dir=canary_results",
             "exp_manager.resume_ignore_no_checkpoint=true",
-            "trainer.max_steps=10",
+            "trainer.max_steps=500",
             "trainer.log_every_n_steps=1"
         ])
         print("Training launched for Canary model fine-tuning.")
