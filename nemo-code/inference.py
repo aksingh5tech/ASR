@@ -20,7 +20,18 @@ class CanaryTranscriber:
         display(audio)
 
     def transcribe(self, audio_path, source_lang='en', target_lang='en', pnc=True):
-        """Transcribe the audio using the ASR model."""
+        """Transcribe the audio (ASR mode)."""
+        result = self.model.transcribe(
+            audio=[audio_path],
+            batch_size=1,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            pnc=str(pnc)
+        )
+        return result[0].text
+
+    def translate(self, audio_path, source_lang='en', target_lang='es', pnc=True):
+        """Translate speech to text from one language to another."""
         result = self.model.transcribe(
             audio=[audio_path],
             batch_size=1,
@@ -33,15 +44,34 @@ class CanaryTranscriber:
 
 # Example usage:
 if __name__ == "__main__":
+    # Path to audio file
     audio_file = "datasets/LibriLight/librispeech_finetuning/1h/0/clean/3526/175658/3526-175658-0000.flac"
 
+    # Instantiate the transcriber
     transcriber = CanaryTranscriber()
 
+    # Play the audio
     print("\nPlaying audio...")
     transcriber.listen(audio_file)
 
+    # ASR transcription with punctuation and capitalization
     print("\nTranscription with PnC:")
     print(transcriber.transcribe(audio_file, pnc=True))
 
+    # ASR transcription without punctuation and capitalization
     print("\nTranscription without PnC:")
     print(transcriber.transcribe(audio_file, pnc=False))
+
+    # Translation example (English → Spanish)
+    print("\n\nSpeech to text translation from English to Spanish with punctuation and capitalization:")
+    translated_text = transcriber.translate(
+        audio_path=audio_file,
+        source_lang='en',
+        target_lang='es',
+        pnc=True
+    )
+    print(f'  "{translated_text}"')
+
+    # Replay audio
+    print("\nReplaying audio...")
+    transcriber.listen(audio_file)
