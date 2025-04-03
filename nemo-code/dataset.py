@@ -1,34 +1,39 @@
-# import libraries
-
-import glob
-import json
-import librosa
-import numpy as np
-from omegaconf import OmegaConf, open_dict
 import os
-import soundfile as sf
-import subprocess
 import tarfile
-import tqdm
 import wget
 
-import torch
+class LibriLightDataHandler:
+    def __init__(self, data_dir="datasets"):
+        self.data_dir = data_dir
+        self.librispeech_url = "https://dl.fbaipublicfiles.com/librilight/data/librispeech_finetuning.tgz"
+        self.librispeech_tgz = os.path.join(self.data_dir, 'librispeech_finetuning.tgz')
+        self.librilight_dir = os.path.join(self.data_dir, 'LibriLight')
 
+        # Ensure the base data directory exists
+        os.makedirs(self.data_dir, exist_ok=True)
 
-def download_and_prepare_librilight_data(data_dir="datasets"):
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    def download_dataset(self):
+        if not os.path.exists(self.librispeech_tgz):
+            print("Downloading LibriLight dataset...")
+            wget.download(self.librispeech_url, self.data_dir, bar=None)
+            print(f"\nDataset downloaded at: {self.librispeech_tgz}")
+        else:
+            print("Dataset archive already exists.")
 
-    libri_data_dir = os.path.join(data_dir, 'LibriLight')
-    libri_tgz_file = f'{data_dir}/librispeech_finetuning.tgz'
+    def extract_dataset(self):
+        if not os.path.exists(self.librilight_dir):
+            print("Extracting LibriLight dataset...")
+            with tarfile.open(self.librispeech_tgz) as tar:
+                tar.extractall(path=self.librilight_dir)
+            print(f"Dataset extracted to: {self.librilight_dir}")
+        else:
+            print("Dataset already extracted.")
 
-    if not os.path.exists(libri_tgz_file):
-        url = "https://dl.fbaipublicfiles.com/librilight/data/librispeech_finetuning.tgz"
-        libri_path = wget.download(url, data_dir, bar=None)
-        print(f"Dataset downloaded at: {libri_path}")
+    def prepare_data(self):
+        self.download_dataset()
+        self.extract_dataset()
+        print(f"LibriLight data is ready at: {self.librilight_dir}")
 
-    if not os.path.exists(libri_data_dir):
-        tar = tarfile.open(libri_tgz_file)
-        tar.extractall(path=libri_data_dir)
-
-    print(f'LibriLight data is ready at {libri_data_dir}')
+if __name__ == "__main__":
+    handler = LibriLightDataHandler()
+    handler.prepare_data()
