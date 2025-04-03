@@ -112,28 +112,27 @@ class ASRFineTuner:
         print(f'\n{np.round(tot_duration/3600, 2)} hours of audio ready for training')
 
     def _update_config(self):
-        self.config = self.model.cfg.clone()  # Safe copy of config
-        self.config.defrost()  # Allow adding/modifying keys
+        # If train_ds or validation_ds don’t exist, define them
+        if not hasattr(self.model.cfg, "train_ds") or self.model.cfg.train_ds is None:
+            self.model.cfg.train_ds = OmegaConf.create()
 
-        # Create training config if missing
-        if "train_ds" not in self.config:
-            self.config.train_ds = {}
-        if "validation_ds" not in self.config:
-            self.config.validation_ds = {}
+        if not hasattr(self.model.cfg, "validation_ds") or self.model.cfg.validation_ds is None:
+            self.model.cfg.validation_ds = OmegaConf.create()
 
-        self.config.train_ds.manifest_filepath = self.train_manifest
-        self.config.train_ds.batch_size = self.batch_size
-        self.config.train_ds.num_workers = self.num_workers
+        self.model.cfg.train_ds.manifest_filepath = self.train_manifest
+        self.model.cfg.train_ds.batch_size = self.batch_size
+        self.model.cfg.train_ds.num_workers = self.num_workers
+        self.model.cfg.train_ds.shuffle = True
+        self.model.cfg.train_ds.pin_memory = True
 
-        self.config.validation_ds.manifest_filepath = self.train_manifest
-        self.config.validation_ds.batch_size = self.batch_size
-        self.config.validation_ds.num_workers = self.num_workers
+        self.model.cfg.validation_ds.manifest_filepath = self.train_manifest  # reusing same for now
+        self.model.cfg.validation_ds.batch_size = self.batch_size
+        self.model.cfg.validation_ds.num_workers = self.num_workers
+        self.model.cfg.validation_ds.pin_memory = True
 
-        self.config.optim.lr = self.lr
-        self.config.optim.betas = self.betas
-        self.config.optim.weight_decay = self.weight_decay
-
-        self.config.freeze()  # Optional: lock it again to prevent further changes
+        self.model.cfg.optim.lr = self.lr
+        self.model.cfg.optim.betas = self.betas
+        self.model.cfg.optim.weight_decay = self.weight_decay
 
     def fine_tune(self):
         self.model.setup_training_data(train_data_config=self.config.train_ds)
