@@ -85,17 +85,6 @@ python inference.py \
 
 This will output the transcriptions for the input audio using the trained ASR model.
 
-## 📁 Project Structure
-
-```
-5tech-ASR/
-├── dataset.py         # Prepares and processes the dataset
-├── train.py           # Trains the ASR model
-├── inference.py       # Runs inference using the trained model
-├── utils/             # Utility functions (if available)
-└── models/            # Model definitions (if available)
-```
-
 ## 🛠 Requirements
 
 Make sure to install required dependencies. You can create a `requirements.txt` file or install manually:
