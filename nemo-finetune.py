@@ -1,10 +1,14 @@
 import os
+import json
+import glob
+import tqdm
+import librosa
 import torch
 import tarfile
+import numpy as np
 import wget
 import nemo.collections.asr as nemo_asr
 from pytorch_lightning import Trainer
-from nemo.collections.asr.parts.utils.manifest_utils import create_manifest
 
 
 class ASRFineTuner:
@@ -29,7 +33,8 @@ class ASRFineTuner:
         self.betas = betas
         self.weight_decay = weight_decay
 
-        self.train_manifest, self.val_manifest = self._prepare_librilight(data_root)
+        self.train_manifest = os.path.join(data_root, "LibriLight/train_manifest.json")
+        self._prepare_librilight(data_root)
 
         self.model = nemo_asr.models.EncDecCTCModel.from_pretrained(model_name=model_name)
         self.model.change_vocabulary(new_vocabulary=vocabulary)
@@ -62,27 +67,56 @@ class ASRFineTuner:
                 tar.extractall(path=libri_dir)
             print(f"Extracted to: {libri_dir}")
 
-        train_audio_dir = os.path.join(libri_dir, "train")
-        val_audio_dir = os.path.join(libri_dir, "dev")
+        # Build manifest from 1h finetuning subset
+        if not os.path.exists(self.train_manifest):
+            print("Building manifest from 1h subset...")
+            self.build_manifest(data_root, self.train_manifest)
+        else:
+            print(f"Using existing manifest: {self.train_manifest}")
 
-        train_manifest = os.path.join(data_root, "train_manifest.json")
-        val_manifest = os.path.join(data_root, "val_manifest.json")
+    def build_manifest(self, data_root, manifest_path):
+        transcript_list = glob.glob(
+            os.path.join(data_root, 'LibriLight/librispeech_finetuning/1h/**/*.txt'), recursive=True
+        )
+        tot_duration = 0
+        with open(manifest_path, 'w') as fout:
+            pass  # ensure new file
 
-        if not os.path.exists(train_manifest):
-            print("Creating train manifest...")
-            create_manifest(train_audio_dir, train_manifest)
-        if not os.path.exists(val_manifest):
-            print("Creating validation manifest...")
-            create_manifest(val_audio_dir, val_manifest)
+        for transcript_path in tqdm.tqdm(transcript_list):
+            wav_dir = os.path.dirname(transcript_path)
+            with open(transcript_path, 'r') as fin, open(manifest_path, 'a') as fout:
+                for line in fin:
+                    parts = line.strip().split()
+                    if len(parts) < 2:
+                        continue
+                    file_id = parts[0]
+                    transcript = ' '.join(parts[1:]).lower().strip()
+                    audio_path = os.path.join(wav_dir, f'{file_id}.flac')
+                    try:
+                        duration = librosa.get_duration(path=audio_path)
+                    except Exception as e:
+                        print(f"Skipping {audio_path} due to error: {e}")
+                        continue
 
-        return train_manifest, val_manifest
+                    tot_duration += duration
+                    metadata = {
+                        "audio_filepath": audio_path,
+                        "duration": duration,
+                        "text": transcript,
+                        "target_lang": "en",
+                        "source_lang": "en",
+                        "pnc": "False"
+                    }
+                    json.dump(metadata, fout)
+                    fout.write('\n')
+        print(f'\n{np.round(tot_duration/3600, 2)} hours of audio ready for training')
 
     def _update_config(self):
         self.config.train_ds.manifest_filepath = self.train_manifest
         self.config.train_ds.batch_size = self.batch_size
         self.config.train_ds.num_workers = self.num_workers
 
-        self.config.validation_ds.manifest_filepath = self.val_manifest
+        self.config.validation_ds.manifest_filepath = self.train_manifest  # reuse same for small 1h finetune
         self.config.validation_ds.batch_size = self.batch_size
         self.config.validation_ds.num_workers = self.num_workers
 
@@ -105,6 +139,7 @@ class ASRFineTuner:
     def transcribe(self, audio_paths):
         print("Transcribing audio files...")
         return self.model.transcribe(audio_paths)
+
 
 
 if __name__ == "__main__":
