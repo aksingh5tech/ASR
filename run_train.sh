@@ -7,7 +7,7 @@ MANIFEST_PATH="${DATA_DIR}/jarvisx17_Medical-ASR-EN/train_manifest.json"
 CONFIG_NAME="${MODEL_NAME//\//_}-finetune.yaml"
 
 # Step 1: Run setup script
-echo "Running Python setup..."
+echo "Running Training setup..."
 python train.py \
   --data_dir "$DATA_DIR" \
   --model_name "$MODEL_NAME" \

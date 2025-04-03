@@ -56,7 +56,8 @@ Manifest created at: ./datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
 Start the model training process:
 
 ```bash
-python train.py
+chmod +x run_train.sh
+./run_train.sh
 ```
 
 This script will initiate fine-tuning of the ASR model using the processed dataset.
