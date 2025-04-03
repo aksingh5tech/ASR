@@ -59,3 +59,7 @@ class MedicalASRDataHandler:
 
         print(f"\nTotal duration: {np.round(total_duration / 3600, 2)} hours")
         print(f"Manifest created at: {self.manifest_path}")
+
+if __name__ == "__main__":
+    handler = MedicalASRDataHandler()
+    handler.build_manifest()
