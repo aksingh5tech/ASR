@@ -69,7 +69,7 @@ Run inference on new audio files:
 ```bash
 python inference.py \
   --checkpoint canary_results/nvidia_canary-1b-flash-finetune/checkpoints/nvidia_canary-1b-flash-finetune.nemo \
-  --audio 5tech-ASR/datasets/jarvisx17_Medical-ASR-EN/audio/sample_990.wav
+  --audio datasets/jarvisx17_Medical-ASR-EN/audio/sample_990.wav
 
 ```
 
