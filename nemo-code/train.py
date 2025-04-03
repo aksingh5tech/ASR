@@ -7,7 +7,7 @@ import numpy as np
 import subprocess
 from omegaconf import OmegaConf
 from nemo.collections.asr.models import EncDecMultiTaskModel
-from nemo_helpers import wget_from_nemo  # Import the helper method
+from helper import wget_from_nemo  # Import the helper method
 
 class ASRModelTrainer:
     def __init__(self, data_root, manifest_filename='train_manifest.json'):
