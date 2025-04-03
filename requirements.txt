@@ -1,0 +1,7 @@
+wheel
+librosa
+wget
+text-unidecode
+omegaconf
+datasets
+nemo_toolkit[asr]

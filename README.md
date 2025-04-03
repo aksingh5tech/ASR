@@ -85,12 +85,23 @@ python inference.py \
 
 This will output the transcriptions for the input audio using the trained ASR model.
 
-## 🛠 Requirements
-
-Make sure to install required dependencies. You can create a `requirements.txt` file or install manually:
+## 🛠 SETUP
 
 ```bash
-pip install -r requirements.txt
+sudo apt update
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install python3.10 python3.10-venv -y
+
+python -m venv asr_venv
+source asr_venv/bin/activate
+```
+
+pip install wheel librosa wget text-unidecode omegaconf datasets
+pip install nemo_toolkit[asr]
+
+
 ```
 
 ## 📬 Contact
