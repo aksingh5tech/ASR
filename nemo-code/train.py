@@ -7,12 +7,16 @@ import numpy as np
 import subprocess
 from omegaconf import OmegaConf
 from nemo.collections.asr.models import EncDecMultiTaskModel
-from helper import wget_from_nemo  # Import the helper method
+from nemo_helpers import wget_from_nemo  # Import the helper method
 
 class ASRModelTrainer:
     def __init__(self, data_root, manifest_filename='train_manifest.json'):
         self.data_root = data_root
         self.manifest_path = os.path.join(data_root, 'LibriLight', manifest_filename)
+
+        # Download required training and config scripts
+        wget_from_nemo('examples/asr/speech_multitask/speech_to_text_aed.py')
+        wget_from_nemo('examples/asr/conf/speech_multitask/fast-conformer_aed.yaml', 'config')
 
     def build_manifest(self):
         transcript_list = glob.glob(
