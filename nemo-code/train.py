@@ -7,6 +7,7 @@ import numpy as np
 import subprocess
 from omegaconf import OmegaConf
 from nemo.collections.asr.models import EncDecMultiTaskModel
+from nemo_helpers import wget_from_nemo  # Import the helper method
 
 class ASRModelTrainer:
     def __init__(self, data_root, manifest_filename='train_manifest.json'):
@@ -54,14 +55,14 @@ class ASRModelTrainer:
         script_path = "scripts/speech_recognition/canary/build_canary_2_special_tokenizer.py"
         output_dir = "tokenizers/spl_tokens"
 
-        subprocess.run(["wget_from_nemo", script_path])
+        wget_from_nemo(script_path)
         os.makedirs(output_dir, exist_ok=True)
         subprocess.run(["python", script_path, output_dir])
         print(f"Special tokenizer built at {output_dir}")
 
     def build_language_specific_tokenizer(self, lang='en', data='libri1h', vocab_size=1024):
         script_path = 'scripts/tokenizers/process_asr_text_tokenizer.py'
-        subprocess.run(["wget_from_nemo", script_path])
+        wget_from_nemo(script_path)
 
         out_dir = f"tokenizers/{lang}_{data}_{vocab_size}"
         manifest_path = self.manifest_path
