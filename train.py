@@ -95,12 +95,12 @@ class ASRModelTrainer:
 
     def train_model(self):
         if 'canary_model' not in globals():
-            canary_model = EncDecMultiTaskModel.from_pretrained('nvidia/canary-180m-flash')
+            canary_model = EncDecMultiTaskModel.from_pretrained('nvidia/canary-1b-flash')
 
         base_model_cfg = OmegaConf.load("config/fast-conformer_aed.yaml")
-        base_model_cfg['name'] = 'canary-180m-flash-finetune'
+        base_model_cfg['name'] = 'canary-1b-flash-finetune'
         base_model_cfg.pop("init_from_nemo_model", None)
-        base_model_cfg['init_from_pretrained_model'] = "nvidia/canary-180m-flash"
+        base_model_cfg['init_from_pretrained_model'] = "nvidia/canary-1b-flash"
 
         canary_model.save_tokenizers('./canary_flash_tokenizers/')
 
@@ -120,7 +120,7 @@ class ASRModelTrainer:
         base_model_cfg['model']['transf_encoder'] = canary_model._cfg['transf_encoder']
 
         cfg = OmegaConf.create(base_model_cfg)
-        config_path = "config/canary-180m-flash-finetune.yaml"
+        config_path = "config/canary-1b-flash-finetune.yaml"
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         with open(config_path, "w") as f:
             OmegaConf.save(cfg, f)
@@ -128,8 +128,8 @@ class ASRModelTrainer:
         subprocess.run([
             "python", "scripts/speech_to_text_aed.py",
             "--config-path=../config",
-            "--config-name=canary-180m-flash-finetune.yaml",
-            f"name=canary-180m-flash-finetune",
+            "--config-name=canary-1b-flash-finetune.yaml",
+            f"name=canary-1b-flash-finetune",
             f"model.train_ds.manifest_filepath={self.manifest_path}",
             f"model.validation_ds.manifest_filepath={self.manifest_path}",
             f"model.test_ds.manifest_filepath={self.manifest_path}",
