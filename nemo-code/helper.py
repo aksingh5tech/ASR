@@ -17,5 +17,7 @@ def wget_from_nemo(nemo_script_path, local_dir="scripts"):
     else:
         print(f"{script_name} already exists in {local_dir}")
 
-# Example usage
-wget_from_nemo("examples/asr/asr_chunked_inference/aed/speech_to_text_aed_chunked_infer.py", local_dir="scripts")
+if __name__ == '__main__':
+
+    # Example usage
+    wget_from_nemo("examples/asr/asr_chunked_inference/aed/speech_to_text_aed_chunked_infer.py", local_dir="scripts")

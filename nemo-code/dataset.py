@@ -1,6 +1,9 @@
 import os
 import tarfile
 import wget
+import glob
+import librosa
+import soundfile as sf
 
 class LibriLightDataHandler:
     def __init__(self, data_dir="datasets"):
@@ -34,6 +37,42 @@ class LibriLightDataHandler:
         self.extract_dataset()
         print(f"LibriLight data is ready at: {self.librilight_dir}")
 
+    def get_longform_audio_sample(self):
+        libri_data_dir = self.librilight_dir
+        audio_paths = glob.glob(os.path.join(
+            libri_data_dir, 'librispeech_finetuning/1h/0/clean/3526/175658/3526-175658-*.flac'
+        ))
+        audio_paths.sort()  # sort by the utterance IDs
+
+        if not audio_paths:
+            print("No audio files found for longform sample.")
+            return None
+
+        write_path = os.path.join(
+            libri_data_dir,
+            'longform',
+            '-'.join(os.path.basename(audio_paths[0]).split('-')[:2]) + '.wav'
+        )
+        os.makedirs(os.path.dirname(write_path), exist_ok=True)
+
+        longform_audio_data = []
+        for audio_path in audio_paths:
+            data, sr = librosa.load(audio_path, sr=16000)
+            longform_audio_data.extend(data)
+
+        sf.write(write_path, longform_audio_data, sr)
+        minutes, seconds = divmod(len(longform_audio_data) / sr, 60)
+        print(f'{int(minutes)} min {int(seconds)} sec audio file saved at {write_path}')
+        return write_path
+
+
 if __name__ == "__main__":
     handler = LibriLightDataHandler()
     handler.prepare_data()
+    longform_audio_path = handler.get_longform_audio_sample()
+
+    # Optional: implement listen_to_audio if you're in an environment that supports audio playback
+    # Example using IPython.display:
+    # from IPython.display import Audio
+    # if longform_audio_path:
+    #     display(Audio(filename=longform_audio_path))
