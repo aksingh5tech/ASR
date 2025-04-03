@@ -2,6 +2,17 @@
 
 A lightweight Automatic Speech Recognition (ASR) system designed for fine-tuning and inference using custom datasets.
 
+
+## 🛠 VENV SETUP
+
+```bash
+sudo apt update
+sudo apt install python3.10 python3.10-venv -y
+
+python -m venv asr_venv
+source asr_venv/bin/activate
+```
+
 ## 📦 Installation
 
 Clone the repository:
@@ -9,6 +20,9 @@ Clone the repository:
 ```bash
 git clone https://github.com/us-inc/5tech-ASR.git
 cd 5tech-ASR
+
+pip install .
+
 ```
 
 ## 🗂 Dataset Preparation
@@ -85,25 +99,7 @@ python inference.py \
 
 This will output the transcriptions for the input audio using the trained ASR model.
 
-## 🛠 SETUP
-
-```bash
-sudo apt update
-sudo apt install software-properties-common -y
-sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt update
-sudo apt install python3.10 python3.10-venv -y
-
-python -m venv asr_venv
-source asr_venv/bin/activate
 ```
-
-pip install wheel librosa wget text-unidecode omegaconf datasets
-pip install nemo_toolkit[asr]
-
-
-```
-
 ## 📬 Contact
 
 For questions or contributions, feel free to open an issue or pull request.
