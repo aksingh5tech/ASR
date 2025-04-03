@@ -33,7 +33,8 @@ class MedicalASRDataHandler:
 
                 sr = 16000
                 if audio_data["sampling_rate"] != sr:
-                    audio_array = librosa.resample(audio_data["array"], audio_data["sampling_rate"], sr)
+                    audio_array = librosa.resample(y=audio_data["array"], orig_sr=audio_data["sampling_rate"],
+                                                   target_sr=sr)
                 else:
                     audio_array = audio_data["array"]
 
