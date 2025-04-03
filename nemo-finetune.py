@@ -112,17 +112,28 @@ class ASRFineTuner:
         print(f'\n{np.round(tot_duration/3600, 2)} hours of audio ready for training')
 
     def _update_config(self):
+        self.config = self.model.cfg.clone()  # Safe copy of config
+        self.config.defrost()  # Allow adding/modifying keys
+
+        # Create training config if missing
+        if "train_ds" not in self.config:
+            self.config.train_ds = {}
+        if "validation_ds" not in self.config:
+            self.config.validation_ds = {}
+
         self.config.train_ds.manifest_filepath = self.train_manifest
         self.config.train_ds.batch_size = self.batch_size
         self.config.train_ds.num_workers = self.num_workers
 
-        self.config.validation_ds.manifest_filepath = self.train_manifest  # reuse same for small 1h finetune
+        self.config.validation_ds.manifest_filepath = self.train_manifest
         self.config.validation_ds.batch_size = self.batch_size
         self.config.validation_ds.num_workers = self.num_workers
 
         self.config.optim.lr = self.lr
         self.config.optim.betas = self.betas
         self.config.optim.weight_decay = self.weight_decay
+
+        self.config.freeze()  # Optional: lock it again to prevent further changes
 
     def fine_tune(self):
         self.model.setup_training_data(train_data_config=self.config.train_ds)
