@@ -1,6 +1,5 @@
 import os
 import torch
-import nemo
 import nemo.collections.asr as nemo_asr
 from omegaconf import OmegaConf
 from pytorch_lightning import Trainer
@@ -19,7 +18,6 @@ class ASRFineTuner:
         lr=0.001,
         betas=(0.95, 0.5),
         weight_decay=1e-5,
-        use_librispeech=True,
         data_root="./librispeech_data"
     ):
         self.output_dir = output_dir
@@ -30,20 +28,14 @@ class ASRFineTuner:
         self.betas = betas
         self.weight_decay = weight_decay
 
-        if use_librispeech:
-            self.train_manifest, self.val_manifest = self._prepare_librispeech(data_root)
+        self.train_manifest, self.val_manifest = self._prepare_librispeech(data_root)
 
-        # Load the pre-trained model
         self.model = nemo_asr.models.EncDecCTCModel.from_pretrained(model_name=model_name)
-
-        # Change vocabulary if needed
         self.model.change_vocabulary(new_vocabulary=vocabulary)
 
-        # Configure training and validation datasets
         self.config = self.model.cfg
         self._update_config()
 
-        # Set up the trainer
         self.trainer = Trainer(
             max_epochs=self.max_epochs,
             gpus=1 if torch.cuda.is_available() else 0,
@@ -51,13 +43,7 @@ class ASRFineTuner:
         )
 
     def _prepare_librispeech(self, data_root):
-        print("Downloading and preparing LibriSpeech dataset...")
-
-        # Download LibriSpeech parts (you can customize this to use other subsets)
-        nemo_asr.data.audio_to_text.get_librispeech(
-            data_dir=data_root,
-            parts=["train-clean-100", "dev-clean"]
-        )
+        print("Assuming LibriSpeech already downloaded and extracted manually...")
 
         train_dir = os.path.join(data_root, "train-clean-100")
         val_dir = os.path.join(data_root, "dev-clean")
@@ -65,10 +51,12 @@ class ASRFineTuner:
         train_manifest = os.path.join(data_root, "train_manifest.json")
         val_manifest = os.path.join(data_root, "val_manifest.json")
 
-        # Create manifests if they don't exist
         if not os.path.exists(train_manifest):
+            print(f"Creating train manifest at: {train_manifest}")
             create_manifest(train_dir, train_manifest)
+
         if not os.path.exists(val_manifest):
+            print(f"Creating validation manifest at: {val_manifest}")
             create_manifest(val_dir, val_manifest)
 
         return train_manifest, val_manifest
