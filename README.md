@@ -15,11 +15,29 @@ cd 5tech-ASR
 
 Prepare your dataset for training:
 
-```bash
-python dataset.py
-```
+### 📄 Dataset Format
 
-Make sure your dataset is structured properly before running the script. This step will preprocess and organize the audio-text pairs for training.
+Your dataset **must** include the following two mandatory columns:
+
+- `audio`: Path to the audio file or the audio data itself.
+- `transcription`: The corresponding text transcription for the audio.
+
+Make sure all audio files are accessible and properly formatted before running the script.
+
+#### Example format (CSV or JSON):
+
+| audio               | transcription                      |
+|---------------------|------------------------------------|
+| audio/001.wav       | Hello, how can I help you today?   |
+| audio/002.wav       | Please take a deep breath.         |
+
+> ⚠️ Note: If using Hugging Face datasets, ensure the dataset you reference includes these two fields.
+
+This step will preprocess and organize the audio-text pairs for training.
+
+```bash
+python prepare_dataset.py --dataset_name jarvisx17/Medical-ASR-EN --split train --data_dir ./datasets
+```
 
 ## 🧠 Training
 

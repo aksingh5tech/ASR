@@ -5,15 +5,17 @@ import soundfile as sf
 import numpy as np
 from datasets import load_dataset
 from tqdm import tqdm
+import argparse
+
 
 class MedicalASRDataHandler:
-    def __init__(self, data_dir="datasets", split="train"):
+    def __init__(self, dataset_name, data_dir="datasets", split="train"):
+        self.dataset_name = dataset_name
         self.data_dir = data_dir
         self.split = split
-        self.dataset_name = "jarvisx17/Medical-ASR-EN"
-        self.output_dir = os.path.join(data_dir, "Medical-ASR-EN")
+        self.output_dir = os.path.join(data_dir, dataset_name.replace("/", "_"))
         self.audio_dir = os.path.join(self.output_dir, "audio")
-        self.manifest_path = os.path.join(self.output_dir, "train_manifest.json")
+        self.manifest_path = os.path.join(self.output_dir, f"{split}_manifest.json")
         os.makedirs(self.audio_dir, exist_ok=True)
 
     def download_dataset(self):
@@ -61,6 +63,21 @@ class MedicalASRDataHandler:
         print(f"\nTotal duration: {np.round(total_duration / 3600, 2)} hours")
         print(f"Manifest created at: {self.manifest_path}")
 
+
 if __name__ == "__main__":
-    handler = MedicalASRDataHandler()
+    parser = argparse.ArgumentParser(description="Prepare manifest for an ASR dataset.")
+    parser.add_argument("--dataset_name", type=str, required=True,
+                        help="The name of the dataset on HuggingFace Hub (e.g., 'jarvisx17/Medical-ASR-EN').")
+    parser.add_argument("--split", type=str, default="train",
+                        help="Dataset split to use (default: 'train').")
+    parser.add_argument("--data_dir", type=str, default="datasets",
+                        help="Directory to store processed data (default: 'datasets').")
+
+    args = parser.parse_args()
+
+    handler = MedicalASRDataHandler(
+        dataset_name=args.dataset_name,
+        data_dir=args.data_dir,
+        split=args.split
+    )
     handler.build_manifest()
