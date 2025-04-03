@@ -8,7 +8,8 @@ class CanaryTranscriber:
     def __init__(self, model_name='nvidia/canary-180m-flash', device=None):
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"Loading model on {self.device}...")
-        self.model = EncDecMultiTaskModel.from_pretrained(model_name, map_location=self.device)
+        # self.model = EncDecMultiTaskModel.from_pretrained(model_name, map_location=self.device)
+        self.model = EncDecMultiTaskModel.restore_from("canary_results/canary-180m-flash-finetune/checkpoints/canary-180m-flash-finetune.nemo")
 
     def listen(self, audio_path, offset=0.0, duration=-1):
         """Play an audio segment."""
