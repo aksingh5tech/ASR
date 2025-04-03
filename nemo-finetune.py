@@ -8,6 +8,8 @@ import tarfile
 import numpy as np
 import wget
 import nemo.collections.asr as nemo_asr
+from omegaconf import OmegaConf
+
 from pytorch_lightning import Trainer
 
 
