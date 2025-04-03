@@ -67,7 +67,10 @@ This script will initiate fine-tuning of the ASR model using the processed datas
 Run inference on new audio files:
 
 ```bash
-python inference.py
+python inference.py \
+  --checkpoint canary_results/nvidia_canary-1b-flash-finetune/checkpoints/nvidia_canary-1b-flash-finetune.nemo \
+  --audio 5tech-ASR/datasets/jarvisx17_Medical-ASR-EN/audio/sample_990.wav
+
 ```
 
 This will output the transcriptions for the input audio using the trained ASR model.

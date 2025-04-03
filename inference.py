@@ -1,3 +1,4 @@
+import argparse
 from pydub import AudioSegment
 from IPython.display import Audio, display
 import torch
@@ -5,11 +6,10 @@ from nemo.collections.asr.models import EncDecMultiTaskModel
 
 
 class CanaryTranscriber:
-    def __init__(self, device=None):
+    def __init__(self, checkpoint_path, device=None):
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-        print(f"Loading model on {self.device}...")
-        # self.model = EncDecMultiTaskModel.from_pretrained(model_name, map_location=self.device)
-        self.model = EncDecMultiTaskModel.restore_from("canary_results/nvidia_canary-1b-flash-finetune/checkpoints/nvidia_canary-1b-flash-finetune.nemo")
+        print(f"Loading model on {self.device} from checkpoint: {checkpoint_path}...")
+        self.model = EncDecMultiTaskModel.restore_from(checkpoint_path, map_location=self.device)
 
     def listen(self, audio_path, offset=0.0, duration=-1):
         """Play an audio segment."""
@@ -43,30 +43,31 @@ class CanaryTranscriber:
         return result[0].text
 
 
-# Example usage:
-if __name__ == "__main__":
-    # Path to audio file
-    audio_file = "datasets/LibriLight/librispeech_finetuning/1h/0/clean/3526/175658/3526-175658-0000.flac"
+def main():
+    parser = argparse.ArgumentParser(description="Canary Transcriber")
+    parser.add_argument('--checkpoint', type=str, required=True, help='Path to the .nemo checkpoint file')
+    parser.add_argument('--audio', type=str, required=True, help='Path to the audio file')
+    args = parser.parse_args()
 
     # Instantiate the transcriber
-    transcriber = CanaryTranscriber()
+    transcriber = CanaryTranscriber(checkpoint_path=args.checkpoint)
 
     # Play the audio
     print("\nPlaying audio...")
-    transcriber.listen(audio_file)
+    transcriber.listen(args.audio)
 
     # ASR transcription with punctuation and capitalization
     print("\nTranscription with PnC:")
-    print(transcriber.transcribe(audio_file, pnc=True))
+    print(transcriber.transcribe(args.audio, pnc=True))
 
     # ASR transcription without punctuation and capitalization
     print("\nTranscription without PnC:")
-    print(transcriber.transcribe(audio_file, pnc=False))
+    print(transcriber.transcribe(args.audio, pnc=False))
 
     # Translation example (English → Spanish)
     print("\n\nSpeech to text translation from English to Spanish with punctuation and capitalization:")
     translated_text = transcriber.translate(
-        audio_path=audio_file,
+        audio_path=args.audio,
         source_lang='en',
         target_lang='es',
         pnc=True
@@ -75,4 +76,8 @@ if __name__ == "__main__":
 
     # Replay audio
     print("\nReplaying audio...")
-    transcriber.listen(audio_file)
+    transcriber.listen(args.audio)
+
+
+if __name__ == "__main__":
+    main()
