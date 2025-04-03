@@ -1,7 +1,8 @@
 import os
 import torch
+import tarfile
+import wget
 import nemo.collections.asr as nemo_asr
-from omegaconf import OmegaConf
 from pytorch_lightning import Trainer
 from nemo.collections.asr.parts.utils.manifest_utils import create_manifest
 
@@ -18,7 +19,7 @@ class ASRFineTuner:
         lr=0.001,
         betas=(0.95, 0.5),
         weight_decay=1e-5,
-        data_root="./librispeech_data/LibriSpeech"
+        data_root="./datasets"
     ):
         self.output_dir = output_dir
         self.batch_size = batch_size
@@ -28,7 +29,7 @@ class ASRFineTuner:
         self.betas = betas
         self.weight_decay = weight_decay
 
-        self.train_manifest, self.val_manifest = self._prepare_librispeech(data_root)
+        self.train_manifest, self.val_manifest = self._prepare_librilight(data_root)
 
         self.model = nemo_asr.models.EncDecCTCModel.from_pretrained(model_name=model_name)
         self.model.change_vocabulary(new_vocabulary=vocabulary)
@@ -42,22 +43,37 @@ class ASRFineTuner:
             accelerator="gpu" if torch.cuda.is_available() else "cpu",
         )
 
-    def _prepare_librispeech(self, data_root):
-        print("Assuming LibriSpeech already downloaded and extracted manually...")
+    def _prepare_librilight(self, data_root):
+        libri_dir = os.path.join(data_root, "LibriLight")
+        tgz_path = os.path.join(data_root, "librispeech_finetuning.tgz")
 
-        train_dir = os.path.join(data_root, "train-clean-100")
-        val_dir = os.path.join(data_root, "dev-clean")
+        if not os.path.exists(data_root):
+            os.makedirs(data_root)
+
+        if not os.path.exists(tgz_path):
+            url = "https://dl.fbaipublicfiles.com/librilight/data/librispeech_finetuning.tgz"
+            print("Downloading LibriLight dataset...")
+            wget.download(url, out=tgz_path)
+            print(f"\nDownloaded dataset to: {tgz_path}")
+
+        if not os.path.exists(libri_dir):
+            print("Extracting LibriLight dataset...")
+            with tarfile.open(tgz_path) as tar:
+                tar.extractall(path=libri_dir)
+            print(f"Extracted to: {libri_dir}")
+
+        train_audio_dir = os.path.join(libri_dir, "train")
+        val_audio_dir = os.path.join(libri_dir, "dev")
 
         train_manifest = os.path.join(data_root, "train_manifest.json")
         val_manifest = os.path.join(data_root, "val_manifest.json")
 
         if not os.path.exists(train_manifest):
-            print(f"Creating train manifest at: {train_manifest}")
-            create_manifest(train_dir, train_manifest)
-
+            print("Creating train manifest...")
+            create_manifest(train_audio_dir, train_manifest)
         if not os.path.exists(val_manifest):
-            print(f"Creating validation manifest at: {val_manifest}")
-            create_manifest(val_dir, val_manifest)
+            print("Creating validation manifest...")
+            create_manifest(val_audio_dir, val_manifest)
 
         return train_manifest, val_manifest
 
@@ -90,10 +106,11 @@ class ASRFineTuner:
         print("Transcribing audio files...")
         return self.model.transcribe(audio_paths)
 
+
 if __name__ == "__main__":
     tuner = ASRFineTuner()
     tuner.fine_tune()
 
-    # Test transcription with sample file (or one from the downloaded dataset)
-    results = tuner.transcribe(["./librispeech_data/dev-clean/84/121123/84-121123-0001.flac"])
+    # Example: transcribe an audio file from LibriLight dev set
+    results = tuner.transcribe(["datasets/LibriLight/dev/84/121123/84-121123-0001.flac"])
     print("Transcription:", results)
