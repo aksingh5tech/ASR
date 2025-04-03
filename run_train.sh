@@ -3,7 +3,7 @@
 # Set variables
 DATA_DIR="datasets"
 MODEL_NAME="nvidia/canary-1b-flash"
-MANIFEST_PATH="${DATA_DIR}/LibriLight/train_manifest.json"
+MANIFEST_PATH="${DATA_DIR}/jarvisx17_Medical-ASR-EN/train_manifest.json"
 CONFIG_NAME="${MODEL_NAME//\//_}-finetune.yaml"
 
 # Step 1: Run setup script
