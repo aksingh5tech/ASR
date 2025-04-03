@@ -13,7 +13,7 @@ class MedicalASRDataHandler:
         self.dataset_name = "jarvisx17/Medical-ASR-EN"
         self.output_dir = os.path.join(data_dir, "Medical-ASR-EN")
         self.audio_dir = os.path.join(self.output_dir, "audio")
-        self.manifest_path = os.path.join(self.output_dir, "manifest.json")
+        self.manifest_path = os.path.join(self.output_dir, "train_manifest.json")
         os.makedirs(self.audio_dir, exist_ok=True)
 
     def download_dataset(self):
