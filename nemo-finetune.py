@@ -53,8 +53,7 @@ class ASRFineTuner:
     def _prepare_librispeech(self, data_root):
         print("Downloading and preparing LibriSpeech dataset...")
 
-        # Downloads only 'train-clean-100' and 'dev-clean'
-        nemo_asr.models.EncDecCTCModel.convert_to_config_file()  # required workaround in some setups
+        # Download LibriSpeech parts (you can customize this to use other subsets)
         nemo_asr.data.audio_to_text.get_librispeech(
             data_dir=data_root,
             parts=["train-clean-100", "dev-clean"]
@@ -66,6 +65,7 @@ class ASRFineTuner:
         train_manifest = os.path.join(data_root, "train_manifest.json")
         val_manifest = os.path.join(data_root, "val_manifest.json")
 
+        # Create manifests if they don't exist
         if not os.path.exists(train_manifest):
             create_manifest(train_dir, train_manifest)
         if not os.path.exists(val_manifest):
