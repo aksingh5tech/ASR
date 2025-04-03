@@ -53,8 +53,7 @@ This step will preprocess and organize the audio-text pairs for training.
 python prepare_dataset.py --dataset_name jarvisx17/Medical-ASR-EN --split train --data_dir ./datasets
 ```
 
-## 🖨 Output Example:
-
+#### You'll get output like below:
 ```bash
 Loading dataset 'jarvisx17/Medical-ASR-EN' split 'train'...
 Loaded 6661 samples.
