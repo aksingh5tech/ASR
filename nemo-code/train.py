@@ -45,6 +45,7 @@ class ASRModelTrainer:
                             "audio_filepath": audio_path,
                             "duration": duration,
                             "text": transcript,
+                            "lang": "en",
                             "target_lang": "en",
                             "source_lang": "en",
                             "pnc": "False"
