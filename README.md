@@ -55,12 +55,12 @@ Manifest created at: ./datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
 To start the model training process, follow the steps below.
 1. Make the script executable (only needed once):
 ```bash
-chmod +x run_training.sh
+chmod +x run_train.sh
 ```
 
 2. Run the training script:
 ```bash
-bash run_training.sh <model_name> <manifest_path>
+bash run_train.sh <model_name> <manifest_path>
 ```
 
 <model_name>: The name of the pretrained model you'd like to fine-tune. For example: nvidia/canary-1b-flash
@@ -69,7 +69,7 @@ bash run_training.sh <model_name> <manifest_path>
 
 ### ✅ Example:
 ```bash
-bash run_training.sh nvidia/canary-1b-flash datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
+bash run_train.sh nvidia/canary-1b-flash datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
 ```
 
 ## 🔍 Inference
