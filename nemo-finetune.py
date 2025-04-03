@@ -18,7 +18,7 @@ class ASRFineTuner:
         lr=0.001,
         betas=(0.95, 0.5),
         weight_decay=1e-5,
-        data_root="./librispeech_data"
+        data_root="./librispeech_data/LibriSpeech"
     ):
         self.output_dir = output_dir
         self.batch_size = batch_size
