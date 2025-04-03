@@ -1,13 +1,22 @@
 #!/bin/bash
 
-# Set variables
+# Check for required arguments
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 <model_name> <manifest_path>"
+  exit 1
+fi
+
+# Set variables from arguments
+MODEL_NAME="$1"
+MANIFEST_PATH="$2"
+
+# Other constants
 DATA_DIR="datasets"
-MODEL_NAME="nvidia/canary-1b-flash"
-MANIFEST_PATH="${DATA_DIR}/jarvisx17_Medical-ASR-EN/train_manifest.json"
 CONFIG_NAME="${MODEL_NAME//\//_}-finetune.yaml"
 
 # Step 1: Run setup script
-echo "Running Training setup..."
+echo "Running Training setup with model: $MODEL_NAME"
+echo "Using manifest: $MANIFEST_PATH"
 python train.py \
   --data_dir "$DATA_DIR" \
   --model_name "$MODEL_NAME" \
