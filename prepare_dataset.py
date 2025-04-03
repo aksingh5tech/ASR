@@ -15,7 +15,7 @@ class MedicalASRDataHandler:
         self.split = split
         self.output_dir = os.path.join(data_dir, dataset_name.replace("/", "_"))
         self.audio_dir = os.path.join(self.output_dir, "audio")
-        self.manifest_path = os.path.join(self.output_dir, f"{split}_manifest.json")
+        self.manifest_path = os.path.join(self.output_dir, f"train_manifest.json")
         os.makedirs(self.audio_dir, exist_ok=True)
 
     def download_dataset(self):
