@@ -74,7 +74,7 @@ chmod +x run_train.sh
 2. Run the training script:
 
 ```bash
-bash run_train.sh nvidia/canary-1b-flash datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
+bash run_train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
 ```
 ###  bash run_train.sh <model_name> <manifest_path>
 <model_name>: The name of the pretrained model you'd like to fine-tune. For example: nvidia/canary-1b-flash
