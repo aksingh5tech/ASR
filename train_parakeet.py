@@ -75,7 +75,8 @@ class ParakeetTrainer:
                 cfg.trainer.precision = 16
                 cfg.trainer.max_epochs = 20
                 cfg.trainer.accumulate_grad_batches = 1
-                cfg.trainer.logger = False  # ✅ Disable built-in PL logger
+                cfg.trainer.logger = False  # Disable Lightning logger
+                cfg.trainer.enable_checkpointing = False  # ✅ Disable Lightning checkpointing
 
             # exp_manager settings (logger fix applied)
             with open_dict(cfg.exp_manager):
