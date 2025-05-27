@@ -68,13 +68,13 @@ Manifest created at: ./datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
 To start the model training process, follow the steps below.
 1. Make the script executable (only needed once):
 ```bash
-chmod +x run_train.sh
+chmod +x train.sh
 ```
 
 2. Run the training script:
 
 ```bash
-bash run_train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
+bash train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/jarvisx17_Medical-ASR-EN/train_manifest.json
 ```
 ###  bash run_train.sh <model_name> <manifest_path>
 <model_name>: The name of the pretrained model you'd like to fine-tune. For example: nvidia/canary-1b-flash

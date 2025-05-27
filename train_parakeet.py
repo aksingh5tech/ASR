@@ -13,7 +13,7 @@ python scripts/speech_to_text_finetune.py \
   --config-path ../config \
   --config-name nvidia_parakeet-tdt-0.6b-v2-finetune.yaml
 
-bash run_train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/jarvisx17_Medical-ASR-EN
+bash train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/jarvisx17_Medical-ASR-EN
 """
 
 class ParakeetTrainer:

@@ -1,0 +1,53 @@
+name: "parakeet_medical_finetune"
+
+model:
+  sample_rate: 16000
+
+  train_ds:
+    manifest_filepath: ./data/train.json
+    batch_size: 64
+    shuffle: true
+    is_tarred: false
+    use_start_end_token: false
+
+  validation_ds:
+    manifest_filepath: ./data/validation.json
+    batch_size: 32
+    shuffle: false
+    is_tarred: false
+
+  preprocessor:
+    cls: nemo.collections.asr.modules.AudioToMelSpectrogramPreprocessor
+    params:
+      normalize: "per_feature"
+
+  encoder:
+    _target_: nemo.collections.asr.modules.ConformerEncoder
+    feat_in: 80
+    num_layers: 16
+    d_model: 512
+    subsampling: "vggnet"
+    ff_expansion_factor: 4.0
+    self_attention_model: "rel_pos"
+    conv_kernel_size: 31
+
+  decoder:
+    _target_: nemo.collections.asr.modules.ConvASRDecoder
+    feat_in: 512
+    num_classes: ???    # NeMo fills this based on vocabulary
+    vocabulary: ???     # NeMo fills this from manifest
+
+  optim:
+    name: adamw
+    lr: 0.001
+    weight_decay: 0.01
+    sched:
+      name: CosineAnnealing
+      warmup_steps: 1000
+
+trainer:
+  devices: 8
+  accelerator: gpu
+  strategy: ddp
+  precision: 16
+  max_epochs: 50
