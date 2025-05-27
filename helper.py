@@ -35,3 +35,4 @@ def wget_from_nemo(nemo_script_path, local_dir=None):
 if __name__ == '__main__':
     # Example: download and preserve original path
     wget_from_nemo("examples/asr/speech_to_text_finetune.py")
+    wget_from_nemo("examples/asr/conf/ctc/parakeet_tdt.yaml")
