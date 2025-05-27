@@ -57,5 +57,5 @@ exp_manager:
   exp_dir: ./results/parakeet_medical
   name: nemo_parakeet_medical
   create_tensorboard_logger: true
-  create_checkpoint_callback: true
+  create_checkpoint_callback: false
 
