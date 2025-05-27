@@ -4,7 +4,9 @@ from omegaconf import OmegaConf, open_dict
 from nemo.collections.asr.models import EncDecRNNTBPEModel
 from helper import wget_from_nemo
 
-
+'''
+bash run_train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/Medical-ASR 4
+'''
 class ParakeetTrainer:
     def __init__(self, data_root, model_name):
         self.data_root = data_root
