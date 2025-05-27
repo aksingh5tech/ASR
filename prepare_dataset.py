@@ -1,21 +1,16 @@
 from datasets import load_dataset
-import torchaudio
 import json
 import os
 from tqdm import tqdm
 
-def compute_duration(audio_path):
-    waveform, sample_rate = torchaudio.load(audio_path)
-    return waveform.shape[1] / sample_rate
-
 def convert_to_manifest(split_dataset, output_path, split_name):
     manifest = []
     for sample in tqdm(split_dataset):
-        audio_path = sample["audio"]["path"]
-        duration = compute_duration(audio_path)
+        # Duration = num_samples / sampling_rate
+        duration = len(sample["audio"]["array"]) / sample["audio"]["sampling_rate"]
 
         manifest.append({
-            "audio_filepath": audio_path,
+            "audio_filepath": sample["audio"]["path"],  # still works in NeMo
             "duration": duration,
             "text": sample["transcription"]
         })
