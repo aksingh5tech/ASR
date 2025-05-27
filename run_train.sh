@@ -1,37 +1,34 @@
 #!/bin/bash
 
-# Check for required arguments
-if [ "$#" -lt 2 ]; then
-  echo "Usage: $0 <model_name> <manifest_path>"
+set -e
+export HYDRA_FULL_ERROR=1  # Get full traceback on failure
+
+MODEL_NAME=$1                # e.g., nvidia/parakeet-tdt-0.6b-v2
+DATA_DIR=$2                 # e.g., datasets/Medical-ASR
+GPUS=${3:-8}                # Default to 8 GPUs unless overridden
+
+# Paths
+CONFIG_NAME="${MODEL_NAME//\//_}-finetune.yaml"
+CONFIG_PATH="config"
+SCRIPT_PATH="scripts/speech_to_text_finetune.py"
+
+# Validate inputs
+if [ -z "$MODEL_NAME" ] || [ -z "$DATA_DIR" ]; then
+  echo "Usage: bash run_train.sh <model_name> <data_dir> [gpu_count]"
   exit 1
 fi
 
-# Set variables from arguments
-MODEL_NAME="$1"
-MANIFEST_PATH="$2"
-
-# Other constants
-DATA_DIR="datasets"
-CONFIG_NAME="${MODEL_NAME//\//_}-finetune.yaml"
-
-# Step 1: Run setup script
-echo "Running Training setup with model: $MODEL_NAME"
-echo "Using manifest: $MANIFEST_PATH"
-python train.py \
-  --data_dir "$DATA_DIR" \
-  --model_name "$MODEL_NAME" \
-  --manifest_path "$MANIFEST_PATH"
-
-# Step 2: Launch training
-echo "Starting training..."
-python scripts/speech_to_text_aed.py \
-  --config-path=../config \
-  --config-name="$CONFIG_NAME" \
-  name="${MODEL_NAME//\//_}-finetune" \
-  model.train_ds.manifest_filepath="$MANIFEST_PATH" \
-  model.validation_ds.manifest_filepath="$MANIFEST_PATH" \
-  model.test_ds.manifest_filepath="$MANIFEST_PATH" \
-  exp_manager.exp_dir=canary_results \
-  exp_manager.resume_ignore_no_checkpoint=true \
-  trainer.max_steps=50 \
-  trainer.log_every_n_steps=1
+# Run training
+echo "[🚀] Starting training with $GPUS GPU(s)..."
+torchrun --nproc_per_node=$GPUS \
+  $SCRIPT_PATH \
+  --config-path $CONFIG_PATH \
+  --config-name $CONFIG_NAME \
+  model.train_ds.manifest_filepath=$DATA_DIR/train_manifest.json \
+  model.validation_ds.manifest_filepath=${DATA_DIR}/val_manifest.json \
+  exp_manager.exp_dir=nemo_experiments/${MODEL_NAME//\//_} \
+  trainer.devices=$GPUS \
+  trainer.strategy=ddp \
+  trainer.precision=16 \
+  trainer.max_epochs=20 \
+  trainer.accumulate_grad_batches=1
