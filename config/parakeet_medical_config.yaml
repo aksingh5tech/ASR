@@ -22,22 +22,6 @@ model:
     params:
       normalize: "per_feature"
 
-  encoder:
-    _target_: nemo.collections.asr.modules.ConformerEncoder
-    feat_in: 80
-    num_layers: 16
-    d_model: 512
-    subsampling: "vggnet"
-    ff_expansion_factor: 4.0
-    self_attention_model: "rel_pos"
-    conv_kernel_size: 31
-
-  decoder:
-    _target_: nemo.collections.asr.modules.ConvASRDecoder
-    feat_in: 512
-    num_classes: ???    # NeMo fills this based on vocabulary
-    vocabulary: ???     # NeMo fills this from manifest
-
   optim:
     name: adamw
     lr: 0.001
@@ -59,4 +43,3 @@ exp_manager:
   name: nemo_parakeet_medical
   create_tensorboard_logger: true
   create_checkpoint_callback: false
-
