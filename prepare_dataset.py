@@ -1,14 +1,22 @@
 from datasets import load_dataset
+import torchaudio
 import json
 import os
 from tqdm import tqdm
 
+def compute_duration(audio_path):
+    waveform, sample_rate = torchaudio.load(audio_path)
+    return waveform.shape[1] / sample_rate
+
 def convert_to_manifest(split_dataset, output_path, split_name):
     manifest = []
     for sample in tqdm(split_dataset):
+        audio_path = sample["audio"]["path"]
+        duration = compute_duration(audio_path)
+
         manifest.append({
-            "audio_filepath": sample["audio"]["path"],
-            "duration": sample["audio"]["duration"],
+            "audio_filepath": audio_path,
+            "duration": duration,
             "text": sample["transcription"]
         })
 
