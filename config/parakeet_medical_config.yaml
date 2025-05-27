@@ -51,6 +51,7 @@ trainer:
   strategy: ddp
   precision: 16
   max_epochs: 50
+  logger: false
 
 exp_manager:
   exp_dir: ./results/parakeet_medical
