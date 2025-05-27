@@ -1,36 +1,37 @@
 #!/bin/bash
 
-set -e  # Exit on any error
-
-MODEL_NAME=$1                # e.g., nvidia/parakeet-tdt-0.6b-v2
-TRAIN_MANIFEST_PATH=$2       # e.g., datasets/Medical-ASR/train_manifest.json
-VAL_MANIFEST_PATH=$3         # optional (defaults to train_manifest)
-
-if [ -z "$MODEL_NAME" ] || [ -z "$TRAIN_MANIFEST_PATH" ]; then
-  echo "Usage: bash run_train.sh <model_name> <train_manifest_path> [val_manifest_path]"
+# Check for required arguments
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 <model_name> <manifest_path>"
   exit 1
 fi
 
-DATA_DIR=$(dirname "$TRAIN_MANIFEST_PATH")
-VAL_MANIFEST_PATH=${VAL_MANIFEST_PATH:-$TRAIN_MANIFEST_PATH}
-EXP_NAME="${MODEL_NAME//\//_}-finetune"
-EXP_DIR="./nemo_experiments/${MODEL_NAME//\//_}"
+# Set variables from arguments
+MODEL_NAME="$1"
+MANIFEST_PATH="$2"
 
-# Launch training
-torchrun --nproc_per_node=8 \
-    examples/asr/speech_to_text_finetune.py \
-    name=$EXP_NAME \
-    model.train_ds.manifest_filepath=$TRAIN_MANIFEST_PATH \
-    model.validation_ds.manifest_filepath=$VAL_MANIFEST_PATH \
-    model.train_ds.batch_size=16 \
-    model.validation_ds.batch_size=16 \
-    model.optim.lr=1e-4 \
-    model.optim.name=adam \
-    model.tokenizer.dir=./tokenizer \
-    model.tokenizer.type=bpe \
-    trainer.devices=8 \
-    trainer.strategy=ddp \
-    trainer.precision=16 \
-    trainer.max_epochs=20 \
-    trainer.accumulate_grad_batches=1 \
-    exp_manager.exp_dir=$EXP_DIR
+# Other constants
+DATA_DIR="datasets"
+CONFIG_NAME="${MODEL_NAME//\//_}-finetune.yaml"
+
+# Step 1: Run setup script
+echo "Running Training setup with model: $MODEL_NAME"
+echo "Using manifest: $MANIFEST_PATH"
+python train.py \
+  --data_dir "$DATA_DIR" \
+  --model_name "$MODEL_NAME" \
+  --manifest_path "$MANIFEST_PATH"
+
+# Step 2: Launch training
+echo "Starting training..."
+python scripts/speech_to_text_aed.py \
+  --config-path=../config \
+  --config-name="$CONFIG_NAME" \
+  name="${MODEL_NAME//\//_}-finetune" \
+  model.train_ds.manifest_filepath="$MANIFEST_PATH" \
+  model.validation_ds.manifest_filepath="$MANIFEST_PATH" \
+  model.test_ds.manifest_filepath="$MANIFEST_PATH" \
+  exp_manager.exp_dir=canary_results \
+  exp_manager.resume_ignore_no_checkpoint=true \
+  trainer.max_steps=50 \
+  trainer.log_every_n_steps=1
