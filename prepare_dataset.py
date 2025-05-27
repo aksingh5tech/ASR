@@ -18,7 +18,7 @@ def convert_to_manifest(dataset, output_path, split_name):
 
 def main(output_path):
     os.makedirs(output_path, exist_ok=True)
-    dataset = load_dataset("arvisx17/Medical-ASR-EN")
+    dataset = load_dataset("jarvisx17/Medical-ASR-EN")
     for split in dataset.keys():
         convert_to_manifest(dataset[split], output_path, split)
 
