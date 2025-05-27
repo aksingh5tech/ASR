@@ -75,11 +75,12 @@ class ParakeetTrainer:
                 cfg.trainer.precision = 16
                 cfg.trainer.max_epochs = 20
                 cfg.trainer.accumulate_grad_batches = 1
+                cfg.trainer.logger = False  # ✅ Disable built-in PL logger
 
             # exp_manager settings (logger fix applied)
             with open_dict(cfg.exp_manager):
                 cfg.exp_manager.exp_dir = f"./nemo_experiments/{self.model_name.replace('/', '_')}"
-                cfg.exp_manager.create_tensorboard_logger = False
+                cfg.exp_manager.create_tensorboard_logger = True  # ✅ Let exp_manager control logging
                 cfg.exp_manager.create_wandb_logger = False
                 cfg.exp_manager.create_mlflow_logger = False
                 cfg.exp_manager.create_clearml_logger = False
