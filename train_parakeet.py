@@ -25,7 +25,7 @@ class ParakeetTrainer:
         os.makedirs(self.config_dir, exist_ok=True)
         os.makedirs(self.script_dir, exist_ok=True)
 
-        # Download the training script
+        # Download training script
         wget_from_nemo("examples/asr/speech_to_text_finetune.py", local_dir=self.script_dir)
 
     def train_model(self):
@@ -42,13 +42,17 @@ class ParakeetTrainer:
         })
 
         with open_dict(cfg):
-            cfg.model.train_ds.manifest_filepath = self.train_manifest
-            cfg.model.validation_ds.manifest_filepath = (
-                self.val_manifest if os.path.exists(self.val_manifest) else self.train_manifest
-            )
-            cfg.model.train_ds.batch_size = 16
-            cfg.model.validation_ds.batch_size = 16
+            with open_dict(cfg.model.train_ds):
+                cfg.model.train_ds.manifest_filepath = self.train_manifest
+                cfg.model.train_ds.batch_size = 16
 
+            with open_dict(cfg.model.validation_ds):
+                cfg.model.validation_ds.manifest_filepath = (
+                    self.val_manifest if os.path.exists(self.val_manifest) else self.train_manifest
+                )
+                cfg.model.validation_ds.batch_size = 16
+
+            # Tokenizer
             tokenizer_dir = "./tokenizer"
             os.makedirs(tokenizer_dir, exist_ok=True)
             try:
@@ -58,19 +62,22 @@ class ParakeetTrainer:
             except Exception as e:
                 print(f"[WARNING] Tokenizer not saved: {e}")
 
-            cfg.trainer.devices = 8
-            cfg.trainer.strategy = 'ddp'
-            cfg.trainer.precision = 16
-            cfg.trainer.max_epochs = 20
-            cfg.trainer.accumulate_grad_batches = 1
+            # Trainer
+            with open_dict(cfg.trainer):
+                cfg.trainer.devices = 8
+                cfg.trainer.strategy = 'ddp'
+                cfg.trainer.precision = 16
+                cfg.trainer.max_epochs = 20
+                cfg.trainer.accumulate_grad_batches = 1
 
-            cfg.exp_manager.exp_dir = f"./nemo_experiments/{self.model_name.replace('/', '_')}"
+            with open_dict(cfg.exp_manager):
+                cfg.exp_manager.exp_dir = f"./nemo_experiments/{self.model_name.replace('/', '_')}"
 
         config_output = os.path.join(self.config_dir, f"{self.model_name.replace('/', '_')}-finetune.yaml")
         OmegaConf.save(cfg, config_output)
 
         print(f"\n[✅] Config saved: {config_output}")
-        print("[🚀] To train, run:")
+        print("[🚀] To start training, run:")
         print(f"python scripts/speech_to_text_finetune.py --config-path {self.config_dir} --config-name {os.path.basename(config_output)}")
 
 
