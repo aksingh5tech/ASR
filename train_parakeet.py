@@ -25,7 +25,7 @@ class ParakeetTrainer:
         os.makedirs(self.config_dir, exist_ok=True)
         os.makedirs(self.script_dir, exist_ok=True)
 
-        # Download training script
+        # Download training script if not already present
         wget_from_nemo("examples/asr/speech_to_text_finetune.py", local_dir=self.script_dir)
 
     def train_model(self):
@@ -42,6 +42,7 @@ class ParakeetTrainer:
         })
 
         with open_dict(cfg):
+            # Update train and validation settings
             with open_dict(cfg.model.train_ds):
                 cfg.model.train_ds.manifest_filepath = self.train_manifest
                 cfg.model.train_ds.batch_size = 16
@@ -52,7 +53,7 @@ class ParakeetTrainer:
                 )
                 cfg.model.validation_ds.batch_size = 16
 
-            # Tokenizer
+            # Tokenizer save (may be skipped if not supported)
             tokenizer_dir = "./tokenizer"
             os.makedirs(tokenizer_dir, exist_ok=True)
             try:
@@ -62,7 +63,7 @@ class ParakeetTrainer:
             except Exception as e:
                 print(f"[WARNING] Tokenizer not saved: {e}")
 
-            # Trainer
+            # Trainer configuration
             with open_dict(cfg.trainer):
                 cfg.trainer.devices = 8
                 cfg.trainer.strategy = 'ddp'
@@ -70,8 +71,14 @@ class ParakeetTrainer:
                 cfg.trainer.max_epochs = 20
                 cfg.trainer.accumulate_grad_batches = 1
 
+            # exp_manager settings (logger fix applied)
             with open_dict(cfg.exp_manager):
                 cfg.exp_manager.exp_dir = f"./nemo_experiments/{self.model_name.replace('/', '_')}"
+                cfg.exp_manager.create_tensorboard_logger = False
+                cfg.exp_manager.create_wandb_logger = False
+                cfg.exp_manager.create_mlflow_logger = False
+                cfg.exp_manager.create_clearml_logger = False
+                cfg.exp_manager.create_dllogger_logger = False
 
         config_output = os.path.join(self.config_dir, f"{self.model_name.replace('/', '_')}-finetune.yaml")
         OmegaConf.save(cfg, config_output)
