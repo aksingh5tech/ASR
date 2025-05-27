@@ -51,3 +51,10 @@ trainer:
   strategy: ddp
   precision: 16
   max_epochs: 50
+
+exp_manager:
+  exp_dir: ./results/parakeet_medical
+  name: nemo_parakeet_medical
+  create_tensorboard_logger: true
+  create_checkpoint_callback: true
+
