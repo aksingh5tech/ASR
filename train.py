@@ -1,77 +1,77 @@
 import os
 import argparse
-import librosa
-import numpy as np
-import subprocess
 from omegaconf import OmegaConf, open_dict
-from nemo.collections.asr.models import EncDecMultiTaskModel
-from helper import wget_from_nemo  # Import the helper method
+from nemo.collections.asr.models import EncDecRNNTBPEModel
+from helper import wget_from_nemo
 
 
-class ASRModelTrainer:
-    def __init__(self, data_root, model_name, manifest_path):
+class ParakeetTrainer:
+    def __init__(self, data_root, model_name):
         self.data_root = data_root
         self.model_name = model_name
-        self.manifest_path = manifest_path
+        self.script_dir = "scripts"
+        self.config_dir = "config"
+        os.makedirs(self.script_dir, exist_ok=True)
+        os.makedirs(self.config_dir, exist_ok=True)
 
-        # Download training script and base config
-        wget_from_nemo('examples/asr/speech_multitask/speech_to_text_aed.py')
-        wget_from_nemo('examples/asr/conf/speech_multitask/fast-conformer_aed.yaml', 'config')
+        # Download the appropriate training script and base config for Transducer
+        wget_from_nemo("examples/asr/speech_to_text_finetune.py", local_dir=self.script_dir)
+        wget_from_nemo("examples/asr/conf/transducer/parakeet_tdt.yaml", local_dir=self.config_dir)
 
     def train_model(self):
-        model = EncDecMultiTaskModel.from_pretrained(self.model_name)
+        # Load pretrained RNNT model
+        model = EncDecRNNTBPEModel.from_pretrained(self.model_name)
 
-        # Load and prepare base config
-        base_config_path = "config/fast-conformer_aed.yaml"
-        cfg = OmegaConf.load(base_config_path)
+        # Load and edit base config
+        config_path = os.path.join(self.config_dir, "parakeet_tdt.yaml")
+        cfg = OmegaConf.load(config_path)
 
         with open_dict(cfg):
             cfg.name = f"{self.model_name.replace('/', '_')}-finetune"
             cfg.init_from_pretrained_model = self.model_name
 
+            # Dataset settings
             cfg.model.train_ds.manifest_filepath = os.path.join(self.data_root, "train_manifest.json")
-            cfg.model.validation_ds.manifest_filepath = os.path.join(self.data_root, "val_manifest.json") if os.path.exists(os.path.join(self.data_root, "val_manifest.json")) else cfg.model.train_ds.manifest_filepath
+            val_manifest = os.path.join(self.data_root, "val_manifest.json")
+            cfg.model.validation_ds.manifest_filepath = val_manifest if os.path.exists(val_manifest) else cfg.model.train_ds.manifest_filepath
+
             cfg.model.train_ds.batch_size = 16
             cfg.model.validation_ds.batch_size = 16
 
-            tokenizer_dir = './canary_flash_tokenizers/'
+            # Tokenizer (optional: use model default or save locally)
+            tokenizer_dir = "./tokenizer"
             os.makedirs(tokenizer_dir, exist_ok=True)
-            model.save_tokenizers(tokenizer_dir)
+            try:
+                model.tokenizer.save_tokenizer(tokenizer_dir)
+                cfg.model.tokenizer.dir = tokenizer_dir
+                cfg.model.tokenizer.type = model.tokenizer.tokenizer_type or "bpe"
+            except Exception as e:
+                print(f"[WARNING] Tokenizer not saved: {e}")
 
-            # Register tokenizers per language (assumes multi-language structure)
-            cfg.model.tokenizer.langs = {}
-            for lang in os.listdir(tokenizer_dir):
-                lang_path = os.path.join(tokenizer_dir, lang)
-                if os.path.isdir(lang_path):
-                    cfg.model.tokenizer.langs[lang] = {
-                        'dir': lang_path,
-                        'type': 'bpe'
-                    }
+            # Trainer settings
+            cfg.trainer.devices = 8
+            cfg.trainer.strategy = 'ddp'
+            cfg.trainer.precision = 16
+            cfg.trainer.max_epochs = 20
+            cfg.trainer.accumulate_grad_batches = 1
 
-            cfg.spl_tokens.model_dir = os.path.join(tokenizer_dir, "spl_tokens")
-            cfg.model.prompt_format = model._cfg.get('prompt_format', None)
-            cfg.model.prompt_defaults = model._cfg.get('prompt_defaults', None)
-            cfg.model.model_defaults = model._cfg.get('model_defaults', None)
-            cfg.model.preprocessor = model._cfg.get('preprocessor', None)
-            cfg.model.encoder = model._cfg.get('encoder', None)
-            cfg.model.transf_decoder = model._cfg.get('transf_decoder', None)
-            cfg.model.transf_encoder = model._cfg.get('transf_encoder', None)
+            # Experiment output
+            cfg.exp_manager.exp_dir = f"./nemo_experiments/{self.model_name.replace('/', '_')}"
 
-        # Save the updated config
-        config_path = f"config/{self.model_name.replace('/', '_')}-finetune.yaml"
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        OmegaConf.save(config=cfg, f=config_path)
-        print(f"[INFO] Fine-tuning config saved to: {config_path}")
-        print(f"[INFO] You can now train using:")
-        print(f"python examples/asr/speech_multitask/speech_to_text_aed.py --config-path config --config-name {os.path.basename(config_path)}")
+        # Save final config
+        output_config = os.path.join(self.config_dir, f"{self.model_name.replace('/', '_')}-finetune.yaml")
+        OmegaConf.save(config=cfg, f=output_config)
+
+        print(f"\n[✅] Fine-tuning config saved: {output_config}")
+        print("[🚀] To train, run:")
+        print(f"python scripts/speech_to_text_finetune.py --config-path {self.config_dir} --config-name {os.path.basename(output_config)}")
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Fine-tune Canary ASR model')
-    parser.add_argument('--data_dir', type=str, required=True, help='Directory containing train/val manifests')
-    parser.add_argument('--model_name', type=str, required=True, help='Model name from HuggingFace or NGC (e.g., nvidia/canary-1b-flash)')
-    parser.add_argument('--manifest_path', type=str, required=True, help='Path to training manifest file (used to infer data root)')
+    parser = argparse.ArgumentParser(description='Fine-tune Parakeet TDT ASR model')
+    parser.add_argument('--data_dir', type=str, required=True, help='Path to folder containing train/val manifest files')
+    parser.add_argument('--model_name', type=str, default='nvidia/parakeet-tdt-0.6b-v2', help='HuggingFace/NGC model name')
     args = parser.parse_args()
 
-    trainer = ASRModelTrainer(args.data_dir, args.model_name, args.manifest_path)
+    trainer = ParakeetTrainer(args.data_dir, args.model_name)
     trainer.train_model()
