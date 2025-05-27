@@ -8,6 +8,11 @@ from helper import wget_from_nemo
 Usage:
 
 python train_parakeet.py --dataset_name jarvisx17/Medical-ASR-EN
+
+python scripts/speech_to_text_finetune.py \
+  --config-path ../config \
+  --config-name nvidia_parakeet-tdt-0.6b-v2-finetune.yaml
+
 bash run_train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/jarvisx17_Medical-ASR-EN
 """
 
