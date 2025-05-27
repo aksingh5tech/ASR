@@ -20,15 +20,13 @@ class ParakeetTrainer:
         self.data_dir = os.path.join("datasets", dataset_name.replace("/", "_"))
         self.train_manifest = os.path.join(self.data_dir, "train_manifest.json")
         self.val_manifest = os.path.join(self.data_dir, "val_manifest.json")
-        self.config_dir = "config"
-        self.script_dir = "scripts"
 
         os.makedirs(self.config_dir, exist_ok=True)
         os.makedirs(self.script_dir, exist_ok=True)
 
         # Download necessary NeMo files
-        wget_from_nemo("examples/asr/speech_to_text_finetune.py", local_dir=self.script_dir)
-        wget_from_nemo("examples/asr/conf/transducer/parakeet_tdt.yaml", local_dir=self.config_dir)
+        wget_from_nemo("examples/asr/speech_to_text_finetune.py", local_dir="scripts")
+        wget_from_nemo("examples/asr/conf/fast_conformer/fast-conformer_transducer_bpe.yaml", local_dir="config")
 
     def train_model(self):
         model = EncDecRNNTBPEModel.from_pretrained(self.model_name)
