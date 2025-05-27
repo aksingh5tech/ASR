@@ -33,21 +33,22 @@ class ParakeetTrainer:
     def train_model(self):
         model = EncDecRNNTBPEModel.from_pretrained(self.model_name)
 
-        cfg_path = os.path.join(self.config_dir, "parakeet_tdt.yaml")
-        cfg = OmegaConf.load(cfg_path)
+        # cfg_path = os.path.join(self.config_dir, "parakeet_tdt.yaml")
+        cfg = model.cfg
 
         with open_dict(cfg):
             cfg.name = f"{self.model_name.replace('/', '_')}-finetune"
             cfg.init_from_pretrained_model = self.model_name
 
+            # Dataset
             cfg.model.train_ds.manifest_filepath = self.train_manifest
             cfg.model.validation_ds.manifest_filepath = (
                 self.val_manifest if os.path.exists(self.val_manifest) else self.train_manifest
             )
-
             cfg.model.train_ds.batch_size = 16
             cfg.model.validation_ds.batch_size = 16
 
+            # Tokenizer
             tokenizer_dir = "./tokenizer"
             os.makedirs(tokenizer_dir, exist_ok=True)
             try:
@@ -57,12 +58,14 @@ class ParakeetTrainer:
             except Exception as e:
                 print(f"[WARNING] Tokenizer not saved: {e}")
 
+            # Trainer
             cfg.trainer.devices = 8
             cfg.trainer.strategy = 'ddp'
             cfg.trainer.precision = 16
             cfg.trainer.max_epochs = 20
             cfg.trainer.accumulate_grad_batches = 1
 
+            # Logging
             cfg.exp_manager.exp_dir = f"./nemo_experiments/{self.model_name.replace('/', '_')}"
 
         config_output = os.path.join(self.config_dir, f"{self.model_name.replace('/', '_')}-finetune.yaml")
