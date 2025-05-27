@@ -12,8 +12,11 @@ class ASRModelTrainer:
         self.manifest_path = manifest_path
 
         # Download fine-tuning script and config
-        wget_from_nemo('examples/asr/speech_to_text_finetune.py')
-        wget_from_nemo('examples/asr/conf/ctc/parakeet_tdt.yaml', 'config')
+        # Download fine-tuning script and config only if not already present
+        if not os.path.exists('examples/asr/speech_to_text_finetune.py'):
+            wget_from_nemo('examples/asr/speech_to_text_finetune.py')
+        if not os.path.exists('config/parakeet_tdt.yaml'):
+            wget_from_nemo('examples/asr/conf/ctc/parakeet_tdt.yaml', 'config')
 
     def train_model(self):
         # Load pretrained Parakeet model
@@ -22,8 +25,11 @@ class ASRModelTrainer:
         # Create tokenizer directory and save tokenizer
         tokenizer_dir = './tokenizer'
         os.makedirs(tokenizer_dir, exist_ok=True)
-        asr_model.tokenizer.save_tokenizer(tokenizer_dir)
-        print(f"[INFO] Tokenizer saved to {tokenizer_dir}")
+        try:
+            asr_model.tokenizer.save_tokenizer(tokenizer_dir)
+            print(f"[INFO] Tokenizer saved to {tokenizer_dir}")
+        except AttributeError:
+            print(f"[WARNING] This model does not support tokenizer saving.")
 
         # Load default Parakeet config
         config_path = 'config/parakeet_tdt.yaml'
@@ -58,8 +64,8 @@ class ASRModelTrainer:
         output_config_path = f"config/{self.model_name.replace('/', '_')}-finetune.yaml"
         OmegaConf.save(config=cfg, f=output_config_path)
         print(f"[INFO] Updated training config saved to {output_config_path}")
-        print(
-            f"[INFO] Now run training using: bash run_train.sh {self.model_name} {cfg.model.train_ds.manifest_filepath}")
+        print(f"[INFO] Now run training using:")
+        print(f"bash run_train.sh {self.model_name} {os.path.abspath(cfg.model.train_ds.manifest_filepath)}")
 
 
 if __name__ == '__main__':
