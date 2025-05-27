@@ -7,6 +7,14 @@ from datasets import load_dataset
 from tqdm import tqdm
 import argparse
 
+'''
+# Train split
+python prepare_dataset.py --dataset_name jarvisx17/Medical-ASR-EN --split train
+
+# Validation split
+python prepare_dataset.py --dataset_name jarvisx17/Medical-ASR-EN --split validation
+
+'''
 
 class MedicalASRDataHandler:
     def __init__(self, dataset_name, data_dir="datasets", split="train"):
