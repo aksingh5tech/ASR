@@ -1,7 +1,7 @@
 name: "parakeet_medical_finetune"
 
 model:
-  init_from_pretrained_model: "nvidia/parakeet-tdt-0.6b-v2"
+  init_from_pretrained_model: nvidia/parakeet-tdt-0.6b-v2
   sample_rate: 16000
 
   train_ds:
