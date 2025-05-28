@@ -1,44 +1,33 @@
-import os
-import json
-import librosa
 from datasets import load_dataset
+import json
+import os
 from tqdm import tqdm
 
-# Define output directory
-DATA_DIR = os.environ.get("DATA_DIR", "./data")
-target_data_dir = os.path.join(DATA_DIR, "medical_asr_converted")
-os.makedirs(target_data_dir, exist_ok=True)
+def convert_to_manifest(split_dataset, output_path, split_name):
+    manifest = []
+    for sample in tqdm(split_dataset):
+        # Duration = num_samples / sampling_rate
+        duration = len(sample["audio"]["array"]) / sample["audio"]["sampling_rate"]
 
-def convert_to_manifest(dataset_split, manifest_path):
-    """Convert dataset split to NeMo-compatible manifest."""
-    with open(manifest_path, 'w') as fout:
-        for sample in tqdm(dataset_split, desc=f"Creating manifest at {manifest_path}"):
-            audio_path = sample["audio"]["path"]  # directly a file path
-            transcript = sample["transcription"]
+        manifest.append({
+            "audio_filepath": sample["audio"]["path"],  # still works in NeMo
+            "duration": duration,
+            "text": sample["transcription"]
+        })
 
-            try:
-                duration = librosa.get_duration(filename=audio_path)
-            except Exception as e:
-                print(f"⚠️ Could not process {audio_path}: {e}")
-                continue
+    with open(os.path.join(output_path, f"{split_name}.json"), "w") as f:
+        for item in manifest:
+            f.write(json.dumps(item) + "\n")
 
-            metadata = {
-                "audio_filepath": audio_path,
-                "duration": duration,
-                "text": transcript
-            }
+def main():
+    output_dir = "./data"
+    os.makedirs(output_dir, exist_ok=True)
 
-            json.dump(metadata, fout)
-            fout.write("\n")
+    dataset = load_dataset("jarvisx17/Medical-ASR-EN")
+    train_val = dataset["train"].train_test_split(test_size=0.1)
 
-# Load dataset
-dataset = load_dataset("jarvisx17/Medical-ASR-EN")
+    convert_to_manifest(train_val["train"], output_dir, "train")
+    convert_to_manifest(train_val["test"], output_dir, "validation")
 
-# Use the full train split
-train_dataset = dataset["train"]
-train_manifest_path = os.path.join(target_data_dir, "train_manifest.json")
-
-# Generate manifest
-convert_to_manifest(train_dataset, train_manifest_path)
-
-print(f"✅ Manifest generated at: {train_manifest_path}")
+if __name__ == "__main__":
+    main()
