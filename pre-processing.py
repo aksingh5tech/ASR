@@ -13,7 +13,7 @@ def convert_to_manifest(dataset_split, manifest_path):
     """Convert dataset split to NeMo-compatible manifest."""
     with open(manifest_path, 'w') as fout:
         for sample in tqdm(dataset_split, desc=f"Creating manifest at {manifest_path}"):
-            audio_path = sample["audio"]  # directly a file path
+            audio_path = sample["audio"]["path"]  # directly a file path
             transcript = sample["transcription"]
 
             try:
