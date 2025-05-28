@@ -29,4 +29,4 @@ def wget_from_nemo(nemo_script_path, local_dir="scripts"):
         print(f"URL tried: {url}")
 
 if __name__ == '__main__':
-    pass
+    wget_from_nemo("examples/asr/asr_ctc/speech_to_text_ctc.py")
