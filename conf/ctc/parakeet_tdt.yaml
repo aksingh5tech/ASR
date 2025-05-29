@@ -19,6 +19,7 @@ exp_manager:
 
 
 model:
+  sample_rate: 44100  # or 16000 if your data is 16kHz
   train_ds:
     manifest_filepath: ./data/medical_asr_converted/train_manifest.json
     batch_size: 16
