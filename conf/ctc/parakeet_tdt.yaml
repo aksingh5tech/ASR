@@ -11,16 +11,11 @@ trainer:
   precision: 16  # AMP/mixed precision
 
 exp_manager:
-  exp_dir: ./nemo_experiments/parakeet_tdt_medical
-  name: medical_asr_finetune
-  create_tensorboard_logger: true
-  create_checkpoint_callback: true
-  checkpoint_callback_params:
-    monitor: val_wer
-    mode: min
-    save_top_k: 3
-    always_save_nemo: true
-    save_last: true
+  create_tensorboard_logger: false
+  create_wandb_logger: false
+  create_mlflow_logger: false
+  create_dllogger_logger: false
+
 
 model:
   train_ds:
