@@ -27,7 +27,7 @@ EOF
 
 # Run NeMo fine-tuning
 python $NEMO_DIR/examples/asr/speech_to_text_finetune.py \
-  --config-path=$NEMO_DIR/examples/asr/conf/fastconformer/hybrid_transducer_ctc \
+  --config-path=/root/ASR/NeMo/examples/asr/conf/fastconformer/hybrid_transducer_ctc \
   --config-name=fastconformer_hybrid_transducer_ctc_bpe \
   +init_from_pretrained_model=stt_en_fastconformer_hybrid_large_pc \
   +model.train_ds.manifest_filepath="$DATA_DIR/medical_asr_converted/train_split.json" \
