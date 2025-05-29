@@ -11,6 +11,7 @@ trainer:
   precision: 16  # AMP/mixed precision
 
 exp_manager:
+  create_checkpoint_callback: false
   create_tensorboard_logger: false
   create_wandb_logger: false
   create_mlflow_logger: false
