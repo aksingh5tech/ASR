@@ -19,10 +19,31 @@ exp_manager:
 
 
 model:
+  preprocessor:
+    _target_: nemo.collections.asr.modules.AudioToMelSpectrogramPreprocessor
+    features: 80
+    n_fft: 1024
+    hop_length: 256
+    win_length: 1024
+    window: hann
+    normalize: per_feature
+    n_mels: 80
+    sample_rate: 44100  # match your dataset
+    preemph: null
+    dither: 1.0e-5
+    pad_to: 16
+    pad_value: 0
+    mag_power: 2.0
+    log: true
+    log_zero_guard_type: clamp
+    log_zero_guard_value: 1e-05
+    mel_scale: slaney
+
   sample_rate: 44100  # or 16000 if your data is 16kHz
   train_ds:
     manifest_filepath: ./data/medical_asr_converted/train_manifest.json
     batch_size: 16
+    sample_rate: 44100  # or 16000 if your data is 16kHz
     trim_silence: false
     shuffle: true
     num_workers: 4
@@ -31,6 +52,7 @@ model:
   validation_ds:
     manifest_filepath: ./data/medical_asr_converted/val_manifest.json
     batch_size: 16
+    sample_rate: 44100  # or 16000 if your data is 16kHz
     trim_silence: false
     shuffle: false
     num_workers: 4
