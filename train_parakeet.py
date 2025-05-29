@@ -10,8 +10,8 @@ Usage:
 python train_parakeet.py --dataset_name jarvisx17/Medical-ASR-EN
 
 python scripts/speech_to_text_finetune.py \
-  --config-path ../config \
-  --config-name nvidia_parakeet-tdt-0.6b-v2-finetune.yaml
+  --conf-path ../conf \
+  --conf-name nvidia_parakeet-tdt-0.6b-v2-finetune.yaml
 
 bash train.sh nvidia/parakeet-tdt-0.6b-v2 datasets/jarvisx17_Medical-ASR-EN
 """
@@ -24,7 +24,7 @@ class ParakeetTrainer:
         self.data_dir = os.path.join("datasets", dataset_name.replace("/", "_"))
         self.train_manifest = os.path.join(self.data_dir, "train_manifest.json")
         self.val_manifest = os.path.join(self.data_dir, "val_manifest.json")
-        self.config_dir = "config"
+        self.config_dir = "conf"
         self.script_dir = "scripts"
 
         os.makedirs(self.config_dir, exist_ok=True)
@@ -37,7 +37,7 @@ class ParakeetTrainer:
         print("[INFO] Loading pretrained model...")
         model = EncDecRNNTBPEModel.from_pretrained(self.model_name)
 
-        print("[INFO] Building training config from model defaults...")
+        print("[INFO] Building training conf from model defaults...")
         cfg = OmegaConf.create({
             "name": f"{self.model_name.replace('/', '_')}-finetune",
             "init_from_pretrained_model": self.model_name,
@@ -92,7 +92,7 @@ class ParakeetTrainer:
 
         print(f"\n[✅] Config saved: {config_output}")
         print("[🚀] To start training, run:")
-        print(f"python scripts/speech_to_text_finetune.py --config-path {self.config_dir} --config-name {os.path.basename(config_output)}")
+        print(f"python scripts/speech_to_text_finetune.py --conf-path {self.config_dir} --conf-name {os.path.basename(config_output)}")
 
 
 if __name__ == "__main__":

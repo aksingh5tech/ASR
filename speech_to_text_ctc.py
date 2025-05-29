@@ -17,7 +17,7 @@
 
 Basic run (on CPU for 50 epochs):
     python examples/asr/asr_ctc/speech_to_text_ctc.py \
-        # (Optional: --config-path=<path to dir of configs> --config-name=<name of config without .yaml>) \
+        # (Optional: --conf-path=<path to dir of configs> --conf-name=<name of conf without .yaml>) \
         model.train_ds.manifest_filepath="<path to manifest file>" \
         model.validation_ds.manifest_filepath="<path to manifest file>" \
         trainer.devices=1 \
@@ -35,7 +35,7 @@ PTL logs will be found in "$(./outputs/$(date +"%y-%m-%d")/$(date +"%H-%M-%S")/l
 
 Override some args of optimizer:
     python speech_to_text_ctc.py \
-    # (Optional: --config-path=<path to dir of configs> --config-name=<name of config without .yaml>) \
+    # (Optional: --conf-path=<path to dir of configs> --conf-name=<name of conf without .yaml>) \
     model.train_ds.manifest_filepath="./an4/train_manifest.json" \
     model.validation_ds.manifest_filepath="./an4/test_manifest.json" \
     trainer.devices=2 \
@@ -45,7 +45,7 @@ Override some args of optimizer:
 
 Override optimizer entirely
     python speech_to_text_ctc.py \
-    # (Optional: --config-path=<path to dir of configs> --config-name=<name of config without .yaml>) \
+    # (Optional: --conf-path=<path to dir of configs> --conf-name=<name of conf without .yaml>) \
     model.train_ds.manifest_filepath="./an4/train_manifest.json" \
     model.validation_ds.manifest_filepath="./an4/test_manifest.json" \
     trainer.devices=2 \
@@ -78,15 +78,15 @@ from nemo.utils.exp_manager import exp_manager
 from nemo.utils.trainer_utils import resolve_trainer_cfg
 
 
-@hydra_runner(config_path="../conf", config_name="config")
+@hydra_runner(config_path="../conf", config_name="conf")
 def main(cfg):
-    logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
+    logging.info(f'Hydra conf: {OmegaConf.to_yaml(cfg)}')
 
     trainer = pl.Trainer(**resolve_trainer_cfg(cfg.trainer))
     exp_manager(trainer, cfg.get("exp_manager", None))
     asr_model = EncDecCTCModel(cfg=cfg.model, trainer=trainer)
 
-    # Initialize the weights of the model from another model, if provided via config
+    # Initialize the weights of the model from another model, if provided via conf
     asr_model.maybe_init_from_pretrained_checkpoint(cfg)
 
     trainer.fit(asr_model)

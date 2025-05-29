@@ -1,0 +1,80 @@
+name: "ParakeetTDT-MedicalASR"
+
+model:
+  sample_rate: 16000
+  log_prediction: true
+  use_amp: true
+
+  train_ds:
+    manifest_filepath: "data/medical_asr_converted/train_manifest.json"   # ✅ updated
+    batch_size: 8
+    shuffle: true
+    num_workers: 4
+    pin_memory: true
+
+  validation_ds:
+    manifest_filepath: "data/medical_asr_converted/val_manifest.json"   # ✅ updated
+    batch_size: 8
+    shuffle: false
+    num_workers: 4
+    pin_memory: true
+
+  test_ds:
+    manifest_filepath: "data/medical_asr_converted/test_manifest.json"   # ✅ updated
+    batch_size: 8
+    shuffle: false
+    num_workers: 4
+    pin_memory: true
+
+  tokenizer:
+    dir: null
+    type: "bpe"
+    model_path: null
+    pretrained_model: "nvidia/parakeet-tdt-0.6b-v2"
+
+  preprocessor:
+    _target_: nemo.collections.asr.modules.AudioToMelSpectrogramPreprocessor
+    normalize: "per_feature"
+    window_size: 0.02
+    window_stride: 0.01
+    window: "hann"
+    features: 80
+    n_fft: 512
+    log: true
+    frame_splicing: 1
+    dither: 1.0e-5
+    pad_to: 0
+    pad_value: 0
+    sample_rate: 16000
+
+  encoder:
+    _target_: nemo.collections.asr.modules.EncDecConformerEncoder
+    feat_in: 80
+    feat_out: 1024
+    n_layers: 16
+    d_model: 1024
+    subsampling: "conv"
+    subsampling_factor: 4
+    ff_expansion_factor: 4.0
+    self_attention_model: "rel_pos"
+    n_heads: 8
+    dropout: 0.1
+    pos_emb_max_len: 5000
+
+  decoder:
+    _target_: nemo.collections.asr.modules.EncDecCTCDecoder
+    feat_in: 1024
+    num_classes: -1
+    vocabulary: []
+
+  loss:
+    _target_: nemo.collections.asr.losses.CTCLoss
+    zero_infinity: true
+
+  optim:
+    name: adamw
+    lr: 1e-4
+    betas: [0.9, 0.98]
+    weight_decay: 0.01
+    sched:
+      name: CosineA

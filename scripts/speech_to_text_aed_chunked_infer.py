@@ -72,7 +72,7 @@ from nemo.utils import logging
 @dataclass
 class TranscriptionConfig:
     """
-    Transcription config
+    Transcription conf
     """
 
     # Required configs
@@ -136,7 +136,7 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
         )
         cfg.chunk_len_in_secs = 10.0
 
-    logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
+    logging.info(f'Hydra conf: {OmegaConf.to_yaml(cfg)}')
     torch.set_grad_enabled(False)
 
     cfg = OmegaConf.structured(cfg)
@@ -184,7 +184,7 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
             currently"
         )
 
-    # Disable config overwriting
+    # Disable conf overwriting
     OmegaConf.set_struct(model_cfg.preprocessor, True)
 
     # Compute output filename
